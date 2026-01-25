@@ -1,0 +1,17 @@
+{
+    "mcpServers": {
+        "roon": {
+            "command": "ssh",
+            "args": [
+                "-o",
+                "StrictHostKeyChecking=no",
+                "admin@QNAP_IP",
+                "docker",
+                "exec",
+                "-i",
+                "roon-mcp",
+                "rwav-bridge-mcp"
+            ]
+        }
+    }
+}

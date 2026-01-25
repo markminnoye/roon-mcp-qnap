@@ -1,0 +1,13 @@
+{
+    "mcpServers": {
+        "roon": {
+            "command": "docker",
+            "args": [
+                "exec",
+                "-i",
+                "roon-mcp",
+                "rwav-bridge-mcp"
+            ]
+        }
+    }
+}

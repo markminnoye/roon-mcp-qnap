@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "rwav": {
+            "command": "rwav-bridge-mcp",
+            "env": {
+                "RWAV_BASE": "auto",
+                "RWAV_DISCOVERY": "auto",
+                "RWAV_TOOL_ALLOWLIST": "tools,history"
+            }
+        }
+    }
+}

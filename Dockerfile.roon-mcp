@@ -1,0 +1,74 @@
+# syntax=docker/dockerfile:1
+# ------------------------------------------------------------------------------
+# RWAV Bridge + RWAV Bridge MCP - Single Container
+# ------------------------------------------------------------------------------
+# This Dockerfile creates a container with both RWAV Bridge (Roon extension)
+# and RWAV Bridge MCP server for AI-powered Roon control via MCP protocol.
+#
+# Build:  docker build -f Dockerfile.roon-mcp -t roon-mcp-qnap .
+# Run:    docker run -d --network host --name roon-mcp roon-mcp-qnap
+# ------------------------------------------------------------------------------
+
+FROM debian:bookworm-slim
+
+# Build arguments for version pinning (default: latest)
+ARG RWAV_BRIDGE_VERSION=1.1.6
+ARG RWAV_MCP_VERSION=latest
+ARG NODE_VERSION=20
+
+LABEL org.opencontainers.image.title="RWAV Bridge + MCP"
+LABEL org.opencontainers.image.description="Single container with RWAV Bridge and MCP server for Roon control"
+LABEL org.opencontainers.image.source="https://github.com/calibress/rwav-bridge"
+LABEL org.opencontainers.image.version="${RWAV_BRIDGE_VERSION}"
+
+# Install dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    wget \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js (for MCP server)
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install RWAV Bridge from portable tar.gz
+# The portable bundle includes bundled Node.js runtime and dist/server.js
+# Note: rwav-bridge.tar.gz must be in build context (pre-downloaded)
+WORKDIR /opt
+COPY rwav-bridge.tar.gz /opt/rwav-bridge.tar.gz
+RUN tar -xzf rwav-bridge.tar.gz \
+    && mv rwav-bridge-linux-x64-portable rwav-bridge \
+    && rm rwav-bridge.tar.gz \
+    && chmod +x /opt/rwav-bridge/node
+
+# Install RWAV Bridge MCP server via npm
+RUN if [ "$RWAV_MCP_VERSION" = "latest" ]; then \
+    npm install -g @calibress/rwav-bridge-mcp; \
+    else \
+    npm install -g @calibress/rwav-bridge-mcp@${RWAV_MCP_VERSION}; \
+    fi
+
+# Create app directory
+WORKDIR /app
+
+# Copy entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Environment variables
+ENV RWAV_BASE=http://127.0.0.1:3002
+ENV NODE_ENV=production
+
+# Expose ports
+# 3002: RWAV Bridge HTTP API
+EXPOSE 3002
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -sf http://localhost:3002/version || exit 1
+
+# Entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]

@@ -1,0 +1,18 @@
+version: '3'
+# RWAV Bridge + MCP Docker Compose for QNAP Container Station
+#
+# Prerequisites:
+# 1. Copy Dockerfile.roon-mcp and entrypoint.sh to /share/CACHEDEV1_DATA/Container/roon-mcp-qnap/
+# 2. Create Application in Container Station and paste/upload this file
+
+services:
+  roon-mcp:
+    build:
+      context: /share/CACHEDEV1_DATA/Container/roon-mcp-qnap
+      dockerfile: Dockerfile.roon-mcp
+    container_name: roon-mcp
+    network_mode: host
+    environment:
+      - RWAV_BASE=http://127.0.0.1:3002
+      - HEALTH_CHECK_TIMEOUT=60
+    restart: unless-stopped
