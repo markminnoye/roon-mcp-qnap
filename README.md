@@ -1,6 +1,6 @@
 # roon-mcp-qnap
 
-Docker container for **RWAV Bridge** + **RWAV Bridge MCP** server, designed for deployment on QNAP NAS with Roon Server QPKG.
+Docker container for **[RWAV Bridge](https://rwav-bridge.co.uk/)** + **RWAV Bridge MCP** server, designed for deployment on QNAP NAS with Roon Server QPKG.
 
 Control Roon via MCP from **BoltAI**, **Claude Desktop**, and **Gemini CLI**.
 

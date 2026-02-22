@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project provides a single Docker container that hosts both **RWAV Bridge** (Roon extension) and **RWAV Bridge MCP** server, enabling AI-powered control of Roon from MCP clients.
+This project provides a single Docker container that hosts both **[RWAV Bridge](https://rwav-bridge.co.uk/)** (Roon extension) and **RWAV Bridge MCP** server, enabling AI-powered control of Roon from MCP clients.
 
 ## Component Diagram
 

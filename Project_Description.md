@@ -1,6 +1,6 @@
 # roon-mcp-qnap
 
-This project aims to create a **single Docker container** that hosts both **RWAV Bridge** and the **RWAV Bridge MCP server**, and deploy that container on a **QNAP TVS‑951X** NAS where **Roon Server QPKG** is already running as the Roon Core.
+This project aims to create a **single Docker container** that hosts both **[RWAV Bridge](https://rwav-bridge.co.uk/)** and the **RWAV Bridge MCP server**, and deploy that container on a **QNAP TVS‑951X** NAS where **Roon Server QPKG** is already running as the Roon Core.
 
 The goal is to control Roon via MCP from desktop AI clients such as **BoltAI**, **Claude Desktop**, and **Gemini CLI**.
 
