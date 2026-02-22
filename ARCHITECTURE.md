@@ -7,28 +7,29 @@ This project provides a single Docker container that hosts both **RWAV Bridge** 
 ## Component Diagram
 
 ```mermaid
-graph TB
-    subgraph Desktop["Mac/Desktop"]
-        A1["BoltAI"]
-        A2["Claude Desktop"]
-        A3["Gemini CLI"]
-        A4["Raycast"]
-        E["Local RWAV Bridge MCP"]
+flowchart TD
+    subgraph Mac["Mac/Desktop"]
+        bolt[BoltAI]
+        claude[Claude]
+        gemini[Gemini CLI]
+        raycast[Raycast]
+        local_mcp[Local RWAV Bridge MCP]
     end
-    
-    subgraph NAS["QNAP NAS"]
-        B["Docker: RWAV Bridge MCP"]
-        C["Docker: RWAV Bridge :3002"]
-        D["Roon Core QPKG"]
+
+    subgraph QNAP["QNAP NAS"]
+        docker_mcp[Docker: RWAV MCP]
+        docker_bridge[Docker: RWAV Bridge<br>HTTP :3002]
+        roon_core[Roon Core<br>QPKG]
     end
+
+    bolt -- "SSH tunnel" --> docker_mcp
+    claude -- "SSH tunnel" --> docker_mcp
+    gemini -- "stdio" --> local_mcp
+    raycast -- "stdio" --> local_mcp
     
-    A1 -.->|SSH tunnel| B
-    A2 -.->|SSH tunnel| B
-    A3 -->|stdio| E
-    A4 -->|stdio| E
-    E -->|HTTP :3002| C
-    B -->|HTTP| C
-    C -->|Roon API| D
+    local_mcp -- "HTTP :3002" --> docker_bridge
+    docker_mcp --> docker_bridge
+    docker_bridge -- "HTTP" --> roon_core
 ```
 
 ## Components
@@ -55,38 +56,32 @@ graph TB
 
 ## Network Flow (Remote Deployment)
 
+```mermaid
+flowchart LR
+    subgraph QNAP["QNAP NAS"]
+        subgraph Docker["Docker Container (roon-mcp)"]
+            mcp["RWAV Bridge MCP<br>(stdio)"]
+            bridge["RWAV Bridge<br>:3002"]
+        end
+        roon["Roon Core (QPKG)<br>UDP 9003 (discovery)"]
+    end
+
+    subgraph Mac["Mac (Desktop)"]
+        bolt[BoltAI]
+        claude[Claude Desktop]
+        gemini[Gemini CLI]
+        raycast[Raycast]
+    end
+
+    Mac -- "SSH tunnel / HTTP :3002" --> Docker
+    
+    mcp <-->|"HTTP"| bridge
+    bridge -- "Roon API" --> roon
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              QNAP NAS                                       │
-│  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │                    Docker Container (roon-mcp)                        │  │
-│  │                                                                       │  │
-│  │   ┌─────────────────────┐         ┌─────────────────────┐            │  │
-│  │   │  RWAV Bridge MCP    │◄───────►│   RWAV Bridge       │            │  │
-│  │   │  (stdio)            │  HTTP   │   :3002             │            │  │
-│  │   └─────────────────────┘         └──────────┬──────────┘            │  │
-│  │                                              │                        │  │
-│  └──────────────────────────────────────────────┼────────────────────────┘  │
-│                                                 │ Roon API                  │
-│                         ┌───────────────────────▼────────────────────────┐  │
-│                         │          Roon Core (QPKG)                      │  │
-│                         │          UDP 9003 (discovery)                  │  │
-│                         └────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      ▲
-                                      │ SSH tunnel / HTTP :3002
-                                      │
-┌─────────────────────────────────────┴───────────────────────────────────────┐
-│                              Mac (Desktop)                                  │
-│   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
-│   │   BoltAI     │  │Claude Desktop│  │  Gemini CLI  │  │   Raycast    │   │
-│   └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘   │
-│                                                                             │
-│   Connection options:                                                       │
-│   • SSH tunnel → docker exec → rwav-bridge-mcp (stdio over SSH)            │
-│   • Local rwav-bridge-mcp → HTTP to QNAP:3002 (recommended)                │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+
+**Connection options:**
+* SSH tunnel → `docker exec` → `rwav-bridge-mcp` (stdio over SSH)
+* Local `rwav-bridge-mcp` → HTTP to QNAP:3002 (recommended)
 
 ## Container Internals
 
